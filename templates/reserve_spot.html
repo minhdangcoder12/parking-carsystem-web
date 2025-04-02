@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Reserve a Spot - Smart Parking System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Reserve a Parking Spot</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="vehicle" class="form-label">Select Vehicle</label>
+                        <select class="form-select" id="vehicle" name="vehicle_id" required>
+                            <option value="">Choose your vehicle</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}">{{ vehicle.license_plate }} - {{ vehicle.vehicle_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="spot" class="form-label">Select Parking Spot</label>
+                        <select class="form-select" id="spot" name="spot_id" required>
+                            <option value="">Choose a spot</option>
+                            {% for spot in available_spots %}
+                            <option value="{{ spot.id }}" {% if request.GET.spot_id == spot.id|stringformat:"s" %}selected{% endif %}>
+                                {{ spot.parking_lot.name }} - Spot {{ spot.spot_number }}
+                                {% if spot.is_handicap %}(Handicap){% endif %}
+                                {% if spot.is_ev_charging %}(EV Charging){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="datetime-local" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5>Parking Rules</h5>
+                        <ul class="mb-0">
+                            <li>Maximum reservation duration: 24 hours</li>
+                            <li>Rate: $2 per hour</li>
+                            <li>Please arrive within 15 minutes of your reservation start time</li>
+                            <li>Late arrivals may result in spot cancellation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-check"></i> Confirm Reservation
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set minimum datetime for start_time to current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('start_time').min = now.toISOString().slice(0, 16);
+    
+    // Set minimum datetime for end_time to start_time
+    document.getElementById('start_time').addEventListener('change', function() {
+        document.getElementById('end_time').min = this.value;
+        if (document.getElementById('end_time').value < this.value) {
+            document.getElementById('end_time').value = this.value;
+        }
+    });
+    
+    // Set maximum datetime for end_time to 24 hours after start_time
+    document.getElementById('start_time').addEventListener('change', function() {
+        const startTime = new Date(this.value);
+        const maxEndTime = new Date(startTime);
+        maxEndTime.setHours(maxEndTime.getHours() + 24);
+        document.getElementById('end_time').max = maxEndTime.toISOString().slice(0, 16);
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,12 @@
+Django==5.1.7
+djangorestframework==3.16.0
+django-cors-headers==4.7.0
+scikit-learn==1.6.1
+pandas==2.2.3
+numpy==2.2.4
+Pillow==11.2.0
+python-dateutil==2.9.0.post0
+pytz==2025.2
+opencv-python==4.9.0.80
+easyocr==1.7.1
+imutils==0.5.4 
